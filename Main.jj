@@ -1,0 +1,184 @@
+options{
+ static = false;
+ DEBUG_PARSER =	true;
+ DEBUG_TOKEN_MANAGER = true;
+}
+
+PARSER_BEGIN(Main)
+
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.IOException;
+
+public class Main{
+	public static void main(String args []) throws ParseException{
+		try{
+			System.out.println("Lendo arquivo fonte...");
+			FileInputStream fis = new FileInputStream(new File("..//JavaCC//src//fonte.txt"));
+			Main parser = new Main(fis);
+			parser.Start();
+			System.out.println("Arquivo fonte processado corretamente!");
+		}
+		catch (IOException e){
+			System.out.println(e);
+			System.exit(0);
+		}
+	}
+}
+
+PARSER_END(Main)
+//Inicio dos Tokens
+
+//1
+SKIP : { " " | "\t" | "\n" | "\r" }
+
+//2
+TOKEN : { < COMENTARIO : "//" >  }
+
+//3
+TOKEN : { < EOL : ";" >  }
+
+//4
+TOKEN : { < INCREMENTO : ( < MAIS > | < MENOS > ) > | < #MAIS : "++" > | < #MENOS : "--" >}
+
+//5
+TOKEN: { < FUNCTION : "function" > }
+
+//6
+TOKEN : { < IF : "if" > }
+
+//7
+TOKEN : { < ELSE : "else" > }
+TOKEN : { < ELSEIF : "elseif" > }
+
+//8
+TOKEN : { < FOR : "for" > }
+TOKEN : { < DO : "do" > }
+TOKEN : { < WHILE : "while" > }
+
+//9
+TOKEN : { < SWITCH : "switch" > }
+TOKEN : { < CASE : "case" > }
+
+//10
+TOKEN : { < BREAK : "break" > }
+
+//11
+TOKEN : { < NUMEROS : (["0"-"9"])+","(["0"-"9"])+ > }
+
+//12
+TOKEN : { < #LETRAS: ["a"-"z","A"-"Z"] > | < #DIGITOS: ["0"-"9"]  > }
+
+//13
+TOKEN : { < OPERADORES_LOGICOS : ( < MAIOR > | < MENOR > | < IGUAL > | < DIFERENTE > ) > |
+	< #MAIOR: ">" > | < #MENOR: "<" > | < #IGUAL: "==" > | < #DIFERENTE: "!=" > 
+}
+
+//14
+TOKEN : { < OPERADORES_ARITIMETICOS : ( < ADICAO > | < SUBTRACAO > | < MULTIPLICACAO > | < DIVISAO > ) > |
+	< #ADICAO: "+" > | < #SUBTRACAO: "-" > | < #MULTIPLICACAO: "*" > | < #DIVISAO: "/" > 
+}
+
+//15
+TOKEN : { < ABRE_CHAVES : "{" >  }
+TOKEN : { < FECHA_CHAVES : "}" >  }
+
+//16
+TOKEN : { < ABRE_PARENTESES : "(" >  }
+TOKEN : { < FECHA_PARENTESES : ")" >  }
+
+//17
+TOKEN: { < TRUE_FALSE: ( < TRUE > | < FALSE > ) > | < #TRUE: "true" > | < #FALSE: "false" >  }
+
+//18
+TOKEN : { < TIPOS : (< INT > | < DOUBLE > | < STRING > | < BOOLEAN > ) > |
+	< #INT : "int" > | < #DOUBLE : "double" > | < #STRING : "String" > | < #BOOLEAN : "boolean" > 
+}
+
+//19
+TOKEN : { < ATRIBUIÇÃO : "=" > }
+
+//20
+TOKEN : { < TEXTO : ( < LETRAS > | < DIGITOS > | "_" )* > }
+
+//21
+TOKEN : { < VALORES : < DIGITOS > ( < DIGITOS > )* | < TEXTO > > }
+
+//22
+TOKEN: { < DOIS_PONTOS : ":" > }
+
+//Inicio das Instruções
+void Start() : {} {
+  ( INSTRUCOES() )  < EOF >
+}
+
+void INSTRUCOES(): {} {
+  ( IF() | COMENTARIOS() | FUNCOES() | FOR() | SWITCH() | OPERACOES_ARITIMETICAS() | DO_WHILE() | ATRIBUICAO_VARIAVEL() ) *
+}
+
+//1
+void COMENTARIOS(): {} {
+  ( ( < COMENTARIO > ( < TEXTO > )* ) )
+}
+
+void ABERTURA(): {}{
+	( < ABRE_CHAVES > ( INSTRUCOES() ) <FECHA_CHAVES > )
+}
+
+//2
+void CONDICOES(): {} {
+  ( <ABRE_PARENTESES > OPERACOES_LOGICAS() < FECHA_PARENTESES > ABERTURA() ) *
+}
+void IF(): { } {
+  ( < IF > CONDICOES() ( < ELSEIF > CONDICOES() ) * ( < ELSE > ABERTURA() ) * )
+}
+
+//3
+void DECLARACAO_VARIAVEL(): {} {
+  ( < TIPOS > < TEXTO > )
+} 
+void VALOR_ATRIBUIDO(): {} {
+  ( < VALORES > | < TRUE_FALSE > | < NUMEROS > | < TEXTO > )
+} 
+void ATRIBUICAO_VARIAVEL(): {} {
+  ( DECLARACAO_VARIAVEL() ( "," ( < TEXTO > | "," < TEXTO > )+ | < ATRIBUIÇÃO > VALOR_ATRIBUIDO() ) * < EOL > )
+}
+
+//4
+void OPERACOES_ARITIMETICAS(): {} {
+  ( < TEXTO > < ATRIBUIÇÃO > ( < VALORES > | < NUMEROS > | < TEXTO > ) ( < OPERADORES_ARITIMETICOS > ( < VALORES > | < NUMEROS > | < TEXTO > ) ) * < EOL > ) 
+}
+
+//5
+void OPERACOES_LOGICAS(): {} {
+  ( ( < VALORES > | < NUMEROS > | < TEXTO > ) < OPERADORES_LOGICOS > ( < VALORES > | < NUMEROS > | < TEXTO > ) )
+}
+
+//6
+//Definido por:
+void INCREMENTOS(): {} {
+	( < TEXTO > < INCREMENTO > )
+}
+
+//7
+void FOR(): {} {
+  ( < FOR > <ABRE_PARENTESES > OPERACOES_ARITIMETICAS() OPERACOES_LOGICAS() < EOL > INCREMENTOS() <FECHA_PARENTESES > ( ABERTURA() ) )
+}
+
+//8
+void CASE(): {} {
+  < CASE > ( < VALORES > | < TEXTO > ) < DOIS_PONTOS > ( INSTRUCOES() ) < BREAK > < EOL >
+}
+void SWITCH(): {} {
+  < SWITCH > <ABRE_PARENTESES > < TEXTO > < FECHA_PARENTESES > <ABRE_CHAVES > ( CASE() )* < FECHA_CHAVES >
+}
+
+//9
+void FUNCOES(): {} {
+  ( < FUNCTION > < TEXTO > < ABRE_PARENTESES > ( < TEXTO > )* < FECHA_PARENTESES > ( ABERTURA() ) )
+}
+
+//10
+void DO_WHILE(): {} {
+  ( < DO > ( ABERTURA() ) < WHILE > <ABRE_PARENTESES > OPERACOES_LOGICAS() <FECHA_PARENTESES >  )
+}

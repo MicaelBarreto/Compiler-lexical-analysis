@@ -1,0 +1,58 @@
+
+int a = 1;
+double b = 2, c;
+String c = teste;
+
+c = 3;
+
+if(a == 1){
+	a = 2;
+}
+
+if(a != 1){
+	a = 2;
+}else{
+	a = 3;
+}
+
+if(a > 1){
+	b = 3;
+}elseif(b < 2){
+	b = 2;
+}
+
+if(a != 1){
+	c = 4;
+}elseif(b == 3){
+	b = 5;
+}else{
+	a = 2;
+}
+
+for(i=0; i<10; i++){
+	if(i<10){
+		a = 1;
+	}
+}
+
+i = 0;
+do{
+	i = i+1;
+}while(i<10)
+
+function foo (){
+	i = i+1;
+}
+
+function bar (i){
+	i = i+2;
+}
+
+switch(i){
+	case 1:
+		i = i+1;
+		break;
+	case 2:
+		i = i+2;
+		break;
+}
